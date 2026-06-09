@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>16タイプ性格診断 | あなたはどのタイプ？</title>
+<meta name="description" content="60秒でわかる！16タイプ性格診断。あなたの本当の性格タイプを無料で診断。結果をSNSでシェアしよう。">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700;900&family=Noto+Sans+JP:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0d14;
+    --surface: #16161f;
+    --border: rgba(255,255,255,0.08);
+    --text: #f0eff8;
+    --muted: #8887a0;
+    --accent: #c8a96e;
+    --accent2: #7b6ee8;
+    --glow: rgba(200,169,110,0.15);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── 星空背景 ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 50% at 20% 0%, rgba(123,110,232,0.12) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 100%, rgba(200,169,110,0.1) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .stars {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .star {
+    position: absolute;
+    background: white;
+    border-radius: 50%;
+    animation: twinkle var(--dur, 3s) ease-in-out infinite;
+    animation-delay: var(--delay, 0s);
+    opacity: 0;
+  }
+  @keyframes twinkle {
+    0%,100%{opacity:0} 50%{opacity:var(--op,0.6)}
+  }
+
+  /* ── レイアウト ── */
+  .screen {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .screen.active {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .screen.hidden { display: none; }
+
+  /* ── タイトル画面 ── */
+  .hero-badge {
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .hero-badge::before, .hero-badge::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    width: 40px;
+  }
+
+  h1 {
+    font-family: 'Noto Serif JP', serif;
+    font-size: clamp(32px, 6vw, 64px);
+    font-weight: 900;
+    line-height: 1.2;
+    text-align: center;
+    margin-bottom: 16px;
+    background: linear-gradient(135deg, #fff 0%, var(--accent) 50%, #fff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .subtitle {
+    color: var(--muted);
+    font-size: 15px;
+    text-align: center;
+    line-height: 1.8;
+    max-width: 480px;
+    margin-bottom: 48px;
+  }
+
+  .type-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    margin-bottom: 48px;
+    max-width: 320px;
+  }
+  .type-chip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 4px;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--muted);
+    letter-spacing: 0.5px;
+    transition: all 0.3s;
+  }
+  .type-chip:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    transform: scale(1.05);
+  }
+
+  /* ── ボタン ── */
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent) 0%, #e8c98a 100%);
+    color: #1a1409;
+    border: none;
+    padding: 18px 48px;
+    font-size: 16px;
+    font-weight: 700;
+    font-family: 'Noto Sans JP', sans-serif;
+    border-radius: 50px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    box-shadow: 0 8px 32px rgba(200,169,110,0.35), 0 0 0 0 var(--accent);
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-primary::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0);
+    transition: background 0.2s;
+  }
+  .btn-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 16px 48px rgba(200,169,110,0.5);
+  }
+  .btn-primary:active { transform: translateY(0); }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    padding: 14px 32px;
+    font-size: 14px;
+    font-family: 'Noto Sans JP', sans-serif;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s;
+    letter-spacing: 0.5px;
+  }
+  .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ── 質問画面 ── */
+  .progress-wrap {
+    width: 100%;
+    max-width: 600px;
+    margin-bottom: 32px;
+  }
+  .progress-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .progress-bar {
+    height: 3px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent2), var(--accent));
+    border-radius: 2px;
+    transition: width 0.5s cubic-bezier(.4,0,.2,1);
+  }
+
+  .question-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 40px;
+    max-width: 600px;
+    width: 100%;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .question-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent2), var(--accent));
+  }
+
+  .q-category {
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .q-text {
+    font-family: 'Noto Serif JP', serif;
+    font-size: clamp(18px, 3vw, 24px);
+    font-weight: 700;
+    line-height: 1.6;
+    margin-bottom: 32px;
+    color: var(--text);
+  }
+
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .option-btn {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    cursor: pointer;
+    text-align: left;
+    font-size: 14px;
+    font-family: 'Noto Sans JP', sans-serif;
+    color: var(--text);
+    transition: all 0.25s;
+    position: relative;
+    overflow: hidden;
+    line-height: 1.6;
+  }
+  .option-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.25s;
+  }
+  .option-btn:nth-child(1)::before { background: linear-gradient(135deg, rgba(123,110,232,0.15), transparent); }
+  .option-btn:nth-child(2)::before { background: linear-gradient(135deg, rgba(200,169,110,0.15), transparent); }
+  .option-btn:hover { border-color: rgba(255,255,255,0.2); transform: translateX(4px); }
+  .option-btn:hover::before { opacity: 1; }
+  .option-btn.selected {
+    border-color: var(--accent);
+    background: rgba(200,169,110,0.1);
+    transform: translateX(4px);
+  }
+  .option-btn.selected::before { opacity: 1; }
+
+  .option-label {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.08);
+    font-size: 11px;
+    font-weight: 700;
+    text-align: center;
+    line-height: 24px;
+    margin-right: 12px;
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+  .option-btn.selected .option-label { background: var(--accent); color: #1a1409; }
+
+  .option-content { display: flex; align-items: flex-start; gap: 0; }
+
+  /* ── 結果画面 ── */
+  .result-header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+  .type-code {
+    font-family: 'Noto Serif JP', serif;
+    font-size: clamp(48px, 10vw, 96px);
+    font-weight: 900;
+    line-height: 1;
+    background: linear-gradient(135deg, var(--accent) 0%, #fff 50%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px;
+    letter-spacing: 4px;
+  }
+  .type-name {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+  .type-nickname {
+    font-size: 14px;
+    color: var(--accent);
+    letter-spacing: 2px;
+  }
+
+  .result-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 32px;
+    max-width: 600px;
+    width: 100%;
+    margin-bottom: 20px;
+  }
+  .result-card h3 {
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .result-card p {
+    font-size: 14px;
+    line-height: 1.9;
+    color: rgba(240,239,248,0.8);
+  }
+
+  .traits {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .trait {
+    background: rgba(200,169,110,0.1);
+    border: 1px solid rgba(200,169,110,0.3);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 12px;
+    color: var(--accent);
+  }
+
+  .dim-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 8px;
+  }
+  .dim-bar { }
+  .dim-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .dim-track {
+    height: 6px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .dim-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 1s cubic-bezier(.4,0,.2,1) 0.3s;
+  }
+
+  .share-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 8px;
+  }
+
+  .ad-placeholder {
+    background: rgba(255,255,255,0.03);
+    border: 1px dashed rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 11px;
+    letter-spacing: 1px;
+    max-width: 600px;
+    width: 100%;
+    margin: 20px 0;
+  }
+
+  /* ── ユーティリティ ── */
+  .text-center { text-align: center; }
+  .mt-4 { margin-top: 16px; }
+  .mt-6 { margin-top: 24px; }
+  .gap-3 { gap: 12px; }
+  .flex { display: flex; }
+  .flex-col { flex-direction: column; }
+  .items-center { align-items: center; }
+
+  @media (max-width: 480px) {
+    .question-card { padding: 24px 20px; }
+    .result-card { padding: 24px 20px; }
+    .type-grid { max-width: 280px; gap: 4px; }
+    .btn-primary { padding: 16px 36px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- 星空 -->
+<div class="stars" id="stars"></div>
+
+<!-- ===== 画面1: タイトル ===== -->
+<div class="screen active" id="screen-start">
+  <div class="hero-badge">無料 · 60秒 · シェア可能</div>
+  <h1>あなたの本当の<br>性格タイプは？</h1>
+  <p class="subtitle">
+    12の質問に答えるだけで、16タイプの中からあなたにぴったりの性格タイプを診断します。
+    友達とシェアして比べてみよう。
+  </p>
+
+  <div class="type-grid">
+    <div class="type-chip">INTJ</div><div class="type-chip">INTP</div>
+    <div class="type-chip">ENTJ</div><div class="type-chip">ENTP</div>
+    <div class="type-chip">INFJ</div><div class="type-chip">INFP</div>
+    <div class="type-chip">ENFJ</div><div class="type-chip">ENFP</div>
+    <div class="type-chip">ISTJ</div><div class="type-chip">ISFJ</div>
+    <div class="type-chip">ESTJ</div><div class="type-chip">ESFJ</div>
+    <div class="type-chip">ISTP</div><div class="type-chip">ISFP</div>
+    <div class="type-chip">ESTP</div><div class="type-chip">ESFP</div>
+  </div>
+
+  <button class="btn-primary" onclick="startQuiz()">診断スタート →</button>
+  <p class="subtitle mt-4" style="font-size:12px;">完全無料・登録不要</p>
+</div>
+
+<!-- ===== 画面2: 質問 ===== -->
+<div class="screen hidden" id="screen-quiz">
+  <div class="progress-wrap">
+    <div class="progress-info">
+      <span id="q-num">質問 1 / 12</span>
+      <span id="q-pct">0%</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+  </div>
+
+  <div class="question-card">
+    <div class="q-category" id="q-category">エネルギー</div>
+    <div class="q-text" id="q-text"></div>
+    <div class="options" id="options"></div>
+  </div>
+
+  <p style="font-size:12px;color:var(--muted);">回答を選ぶと自動で次の質問へ進みます</p>
+</div>
+
+<!-- ===== 画面3: 結果 ===== -->
+<div class="screen hidden" id="screen-result">
+  <div class="result-header">
+    <div class="hero-badge">あなたのタイプ</div>
+    <div class="type-code" id="result-type-code">INFJ</div>
+    <div class="type-name" id="result-type-name">提唱者</div>
+    <div class="type-nickname" id="result-type-nickname">THE ADVOCATE</div>
+  </div>
+
+  <!-- 広告枠（将来Google AdSenseに置き換え） -->
+  <div class="ad-placeholder">広告スペース（Google AdSense）</div>
+
+  <div class="result-card">
+    <h3>あなたの性格</h3>
+    <p id="result-desc"></p>
+    <div class="traits" id="result-traits"></div>
+  </div>
+
+  <div class="result-card">
+    <h3>4つの指標</h3>
+    <div class="dim-bars" id="dim-bars"></div>
+  </div>
+
+  <div class="result-card">
+    <h3>相性の良いタイプ</h3>
+    <p id="result-compat"></p>
+  </div>
+
+  <div class="share-row">
+    <button class="btn-primary" onclick="shareResult()">🔗 結果をシェア</button>
+    <button class="btn-secondary" onclick="restartQuiz()">もう一度診断する</button>
+  </div>
+
+  <!-- 広告枠2 -->
+  <div class="ad-placeholder" style="margin-top:16px;">広告スペース（Google AdSense）</div>
+</div>
+
+<script>
+// ===== 質問データ =====
+const questions = [
+  { cat: "エネルギー", dim: "EI", text: "週末の過ごし方として、どちらが自分らしいですか？", a: "友達や家族と賑やかに過ごす", b: "一人や少人数でゆっくりリフレッシュする", aVal: "E", bVal: "I" },
+  { cat: "エネルギー", dim: "EI", text: "新しいグループに参加したとき、あなたはどうしますか？", a: "積極的に自分から話しかける", b: "まず様子を見て、慣れてから打ち解ける", aVal: "E", bVal: "I" },
+  { cat: "情報収集", dim: "SN", text: "問題を解くとき、どちらを重視しますか？", a: "実際のデータや経験に基づいて考える", b: "直感やひらめき、パターンで考える", aVal: "S", bVal: "N" },
+  { cat: "情報収集", dim: "SN", text: "未来について考えるとき、どちらに近いですか？", a: "現実的な計画と具体的なステップを考える", b: "可能性やビジョンを広げて考える", aVal: "S", bVal: "N" },
+  { cat: "判断基準", dim: "TF", text: "友達が悩みを相談してきたとき、まず何をしますか？", a: "原因を分析して、論理的なアドバイスをする", b: "共感して気持ちに寄り添う", aVal: "T", bVal: "F" },
+  { cat: "判断基準", dim: "TF", text: "チームで意見が対立したとき、あなたはどうしますか？", a: "データや論理で最善策を主張する", b: "全員が納得できる着地点を探す", aVal: "T", bVal: "F" },
+  { cat: "生活スタイル", dim: "JP", text: "旅行の計画はどちらが好きですか？", a: "事前にスケジュールをしっかり組む", b: "大まかな目的地だけ決めて、あとはその場で決める", aVal: "J", bVal: "P" },
+  { cat: "生活スタイル", dim: "JP", text: "締め切りがある仕事は？", a: "早めに終わらせて余裕を持ちたい", b: "締め切り近くになってから本気を出す", aVal: "J", bVal: "P" },
+  { cat: "エネルギー", dim: "EI", text: "疲れたとき、エネルギーを回復する方法は？", a: "外出して人と話すことで元気になる", b: "一人の時間を過ごすことで回復する", aVal: "E", bVal: "I" },
+  { cat: "情報収集", dim: "SN", text: "本や映画を選ぶとき、どちらが好きですか？", a: "実話・ノンフィクション・現実的なストーリー", b: "SF・ファンタジー・哲学的な深みのある作品", aVal: "S", bVal: "N" },
+  { cat: "判断基準", dim: "TF", text: "重要な決断をするとき、最終的に何を優先しますか？", a: "客観的な事実と合理的な結果", b: "自分や関わる人の気持ちと価値観", aVal: "T", bVal: "F" },
+  { cat: "生活スタイル", dim: "JP", text: "部屋や仕事の環境について、どちらに近いですか？", a: "整理整頓されていないと落ち着かない", b: "多少散らかっていてもどこに何があるかわかる", aVal: "J", bVal: "P" },
+];
+
+// ===== 16タイプデータ =====
+const types = {
+  INTJ: { name: "建築家", nick: "THE ARCHITECT", traits: ["戦略的", "独立心が強い", "完璧主義", "知識欲旺盛"], desc: "あなたは論理と直感を組み合わせた、稀有な思考の持ち主です。長期的なビジョンを描き、それを実現するための緻密な計画を立てることが得意。感情よりも効率と成果を重視し、常に改善の余地を探しています。独立した精神と高い基準が、あなたを最も戦略的な思考者の一人にしています。", compat: "ENFP・ENTP との相性が特に良く、あなたの論理的な面を感情豊かなパートナーが補い合います。", dims: [{l:"内向(I)",r:"外向(E)",v:75},{l:"直感(N)",r:"感覚(S)",v:70},{l:"思考(T)",r:"感情(F)",v:65},{l:"計画(J)",r:"柔軟(P)",v:72}] },
+  INTP: { name: "論理学者", nick: "THE LOGICIAN", traits: ["分析的", "創造的", "客観的", "理論好き"], desc: "あなたは理論と分析を愛する知的な探求者です。複雑な概念をシンプルに解体し、新しいアイデアを生み出すことに喜びを感じます。既存の枠にとらわれず、常に「なぜ？」と問い続ける姿勢が、革新的な発見へとつながります。", compat: "ENTJ・ENFJ との相性が良く、あなたのアイデアを実行力のあるパートナーが形にしてくれます。", dims: [{l:"内向(I)",r:"外向(E)",v:72},{l:"直感(N)",r:"感覚(S)",v:68},{l:"思考(T)",r:"感情(F)",v:70},{l:"計画(J)",r:"柔軟(P)",v:35}] },
+  ENTJ: { name: "指揮官", nick: "THE COMMANDER", traits: ["リーダーシップ", "決断力", "効率重視", "自信家"], desc: "あなたは生まれながらのリーダーです。目標に向かって人々を動かし、障害があっても果敢に乗り越える強さを持っています。長期的な視野と実行力を兼ね備え、組織やプロジェクトを成功へと導くことが得意です。", compat: "INTP・INFP との相性が良く、あなたのリーダーシップを支える深い思考力を持つパートナーが理想的。", dims: [{l:"内向(I)",r:"外向(E)",v:25},{l:"直感(N)",r:"感覚(S)",v:65},{l:"思考(T)",r:"感情(F)",v:68},{l:"計画(J)",r:"柔軟(P)",v:70}] },
+  ENTP: { name: "討論者", nick: "THE DEBATER", traits: ["革新的", "機知に富む", "議論好き", "多才"], desc: "あなたはアイデアの達人。新しいコンセプトを生み出し、既存の考えに挑戦することで成長します。鋭い観察眼と知的好奇心で、あらゆる問題に創造的な解決策を見出します。議論を楽しみ、相手の思考を刺激することが得意です。", compat: "INFJ・INTJ との相性が良く、あなたのエネルギッシュな発想を深みのある洞察で支えてくれます。", dims: [{l:"内向(I)",r:"外向(E)",v:28},{l:"直感(N)",r:"感覚(S)",v:72},{l:"思考(T)",r:"感情(F)",v:60},{l:"計画(J)",r:"柔軟(P)",v:32}] },
+  INFJ: { name: "提唱者", nick: "THE ADVOCATE", traits: ["洞察力抜群", "思いやり深い", "ビジョナリー", "誠実"], desc: "あなたは希少な理想主義者です。深い共感力と鋭い直感を持ち、人の潜在的な可能性を見抜く力があります。自分の価値観に基づいて行動し、世界をより良くしたいという強い使命感を持っています。静かながらも確かな影響力で周囲を動かします。", compat: "ENFP・ENTP との相性が特に良く、あなたの深い洞察と彼らの創造的なエネルギーが美しく調和します。", dims: [{l:"内向(I)",r:"外向(E)",v:68},{l:"直感(N)",r:"感覚(S)",v:72},{l:"思考(T)",r:"感情(F)",v:32},{l:"計画(J)",r:"柔軟(P)",v:65}] },
+  INFP: { name: "仲介者", nick: "THE MEDIATOR", traits: ["共感力が高い", "創造的", "理想主義", "誠実"], desc: "あなたは内なる世界を持つ夢想家です。強い価値観と豊かな感情を持ち、それを創造的な形で表現することに喜びを感じます。人の痛みに敏感で、自然な思いやりを持っています。理想の世界を求め続ける純粋な心が魅力です。", compat: "ENFJ・ENTJ との相性が良く、あなたの繊細な感性を力強くサポートしてくれる存在が理想的。", dims: [{l:"内向(I)",r:"外向(E)",v:70},{l:"直感(N)",r:"感覚(S)",v:66},{l:"思考(T)",r:"感情(F)",v:28},{l:"計画(J)",r:"柔軟(P)",v:38}] },
+  ENFJ: { name: "主人公", nick: "THE PROTAGONIST", traits: ["カリスマ的", "共感力高い", "inspiring", "責任感"], desc: "あなたは天性のリーダーであり、人の可能性を引き出す力を持っています。他者の感情に敏感で、チームや集団を鼓舞することが得意。あなたの情熱と共感力が、周囲の人々を成長へと導きます。", compat: "INFP・INTP との相性が良く、あなたの情熱的なリーダーシップを内省的なパートナーが深めてくれます。", dims: [{l:"内向(I)",r:"外向(E)",v:28},{l:"直感(N)",r:"感覚(S)",v:62},{l:"思考(T)",r:"感情(F)",v:28},{l:"計画(J)",r:"柔軟(P)",v:65}] },
+  ENFP: { name: "広報運動家", nick: "THE CAMPAIGNER", traits: ["熱狂的", "創造的", "社交的", "自由な精神"], desc: "あなたは熱意と可能性にあふれた自由な精神の持ち主です。新しいアイデアや人との出会いに喜びを見出し、周囲にポジティブなエネルギーを与えます。深い共感力と創造力で、あらゆる状況に独自のアプローチをもたらします。", compat: "INTJ・INFJ との相性が良く、あなたの豊かな発想を深みのある洞察力で補ってくれます。", dims: [{l:"内向(I)",r:"外向(E)",v:25},{l:"直感(N)",r:"感覚(S)",v:70},{l:"思考(T)",r:"感情(F)",v:32},{l:"計画(J)",r:"柔軟(P)",v:30}] },
+  ISTJ: { name: "管理者", nick: "THE LOGISTICIAN", traits: ["誠実", "責任感", "几帳面", "信頼できる"], desc: "あなたは誠実さと責任感の象徴です。約束を守り、コツコツと積み上げることで確かな結果を出す人。過去の経験と実績を大切にし、周囲から高い信頼を得ています。安定と秩序の中に真の強さを見出します。", compat: "ENFP・ESTP との相性が良く、あなたの安定感を活気ある外向的なパートナーが彩ります。", dims: [{l:"内向(I)",r:"外向(E)",v:70},{l:"直感(N)",r:"感覚(S)",v:28},{l:"思考(T)",r:"感情(F)",v:62},{l:"計画(J)",r:"柔軟(P)",v:72}] },
+  ISFJ: { name: "擁護者", nick: "THE DEFENDER", traits: ["献身的", "思いやり", "実直", "几帳面"], desc: "あなたは静かな力を持つ守護者です。大切な人を陰ながら支え、細やかな配慮で周囲を包みます。高い責任感と実直さで信頼を積み重ね、コミュニティの縁の下の力持ちとして欠かせない存在です。", compat: "ESFP・ESTP との相性が良く、あなたの内省的な温かさを明るく引き出してくれます。", dims: [{l:"内向(I)",r:"外向(E)",v:68},{l:"直感(N)",r:"感覚(S)",v:30},{l:"思考(T)",r:"感情(F)",v:30},{l:"計画(J)",r:"柔軟(P)",v:68}] },
+  ESTJ: { name: "幹部", nick: "THE EXECUTIVE", traits: ["組織力", "リーダーシップ", "決断力", "実直"], desc: "あなたは秩序と効率の体現者です。明確な基準を持ち、それを実行することでコミュニティや組織を支えます。責任を果たすことに誇りを持ち、周囲に安定と信頼をもたらす存在です。", compat: "ISFP・INTP との相性が良く、あなたの実行力を創造的な発想で補い合います。", dims: [{l:"内向(I)",r:"外向(E)",v:28},{l:"直感(N)",r:"感覚(S)",v:30},{l:"思考(T)",r:"感情(F)",v:65},{l:"計画(J)",r:"柔軟(P)",v:72}] },
+  ESFJ: { name: "領事", nick: "THE CONSUL", traits: ["社交的", "温かい", "協力的", "気配り上手"], desc: "あなたは温かさとつながりを大切にする社交的なハーモナイザーです。周囲の人々が幸せであることに喜びを感じ、コミュニティの絆を深めることが得意。細やかな気配りと誠実さで、多くの人から愛される存在です。", compat: "ISFP・INFP との相性が良く、あなたの社交的なエネルギーを内省的な深みが豊かにします。", dims: [{l:"内向(I)",r:"外向(E)",v:28},{l:"直感(N)",r:"感覚(S)",v:32},{l:"思考(T)",r:"感情(F)",v:28},{l:"計画(J)",r:"柔軟(P)",v:68}] },
+  ISTP: { name: "巨匠", nick: "THE VIRTUOSO", traits: ["実用的", "冷静", "好奇心旺盛", "独立的"], desc: "あなたは物事の仕組みを理解することに情熱を持つ、静かな探求者です。手を動かして問題を解決することが得意で、どんな状況でも冷静さを保つことができます。自由を愛し、実践的なアプローチで独自の道を切り開きます。", compat: "ESTJ・ESFJ との相性が良く、あなたの独立した精神を外向的なパートナーが社会的に繋いでくれます。", dims: [{l:"内向(I)",r:"外向(E)",v:66},{l:"直感(N)",r:"感覚(S)",v:32},{l:"思考(T)",r:"感情(F)",v:62},{l:"計画(J)",r:"柔軟(P)",v:32}] },
+  ISFP: { name: "冒険家", nick: "THE ADVENTURER", traits: ["感受性豊か", "芸術的", "自由な精神", "親切"], desc: "あなたは五感を通じて世界を体験する、繊細なアーティストです。美しさや調和を大切にし、自分のペースで独自の表現を追求します。温かい心と柔軟な姿勢で、周囲に穏やかな影響を与える存在です。", compat: "ESTJ・ESFJ との相性が良く、あなたの柔軟な感性を構造的なパートナーが支えてくれます。", dims: [{l:"内向(I)",r:"外向(E)",v:65},{l:"直感(N)",r:"感覚(S)",v:35},{l:"思考(T)",r:"感情(F)",v:30},{l:"計画(J)",r:"柔軟(P)",v:32}] },
+  ESTP: { name: "起業家", nick: "THE ENTREPRENEUR", traits: ["行動力", "リスク好き", "機転が利く", "エネルギッシュ"], desc: "あなたは行動の人です。考えるより先に動き、その場の状況を瞬時に読んで最善手を打つ天才。リスクを恐れず挑戦し続けることで、周囲を驚かせ続けます。エネルギッシュな存在感が自然と人々を惹きつけます。", compat: "ISFJ・ISTJ との相性が良く、あなたの行動力を支える安定感のあるパートナーが力になります。", dims: [{l:"内向(I)",r:"外向(E)",v:25},{l:"直感(N)",r:"感覚(S)",v:30},{l:"思考(T)",r:"感情(F)",v:60},{l:"計画(J)",r:"柔軟(P)",v:32}] },
+  ESFP: { name: "エンターテイナー", nick: "THE ENTERTAINER", traits: ["陽気", "自発的", "エネルギッシュ", "人情味"], desc: "あなたはどんな場でも輝く天性のエンターテイナーです。人生を楽しむことの達人で、その喜びを周囲に惜しみなく分け与えます。現在この瞬間を大切にし、人々を笑顔にすることに生きがいを感じます。", compat: "ISFJ・ISTJ との相性が良く、あなたの自発的なエネルギーを地に足ついたパートナーが安定させます。", dims: [{l:"内向(I)",r:"外向(E)",v:25},{l:"直感(N)",r:"感覚(S)",v:30},{l:"思考(T)",r:"感情(F)",v:28},{l:"計画(J)",r:"柔軟(P)",v:28}] },
+};
+
+// ===== ロジック =====
+let scores = { E: 0, I: 0, S: 0, N: 0, T: 0, F: 0, J: 0, P: 0 };
+let currentQ = 0;
+
+function startQuiz() {
+  scores = { E:0,I:0,S:0,N:0,T:0,F:0,J:0,P:0 };
+  currentQ = 0;
+  showScreen('screen-quiz');
+  showQuestion();
+}
+
+function showQuestion() {
+  const q = questions[currentQ];
+  const pct = Math.round((currentQ / questions.length) * 100);
+  document.getElementById('q-num').textContent = `質問 ${currentQ+1} / ${questions.length}`;
+  document.getElementById('q-pct').textContent = pct + '%';
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('q-category').textContent = q.cat;
+  document.getElementById('q-text').textContent = q.text;
+
+  const opts = document.getElementById('options');
+  opts.innerHTML = '';
+  [{label:'A', text:q.a, val:q.aVal}, {label:'B', text:q.b, val:q.bVal}].forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.innerHTML = `<div class="option-content"><span class="option-label">${opt.label}</span><span>${opt.text}</span></div>`;
+    btn.onclick = () => selectOption(opt.val, btn);
+    opts.appendChild(btn);
+  });
+}
+
+function selectOption(val, btn) {
+  document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  scores[val]++;
+  setTimeout(() => {
+    currentQ++;
+    if (currentQ < questions.length) showQuestion();
+    else showResult();
+  }, 400);
+}
+
+function showResult() {
+  const E = scores.E > scores.I ? 'E' : 'I';
+  const S = scores.S > scores.N ? 'S' : 'N';
+  const T = scores.T > scores.F ? 'T' : 'F';
+  const J = scores.J > scores.P ? 'J' : 'P';
+  const typeCode = E + (S === 'S' ? 'S' : 'N') + T + J;
+  const type = types[typeCode] || types['INFJ'];
+
+  document.getElementById('result-type-code').textContent = typeCode;
+  document.getElementById('result-type-name').textContent = type.name;
+  document.getElementById('result-type-nickname').textContent = type.nick;
+  document.getElementById('result-desc').textContent = type.desc;
+  document.getElementById('result-compat').textContent = type.compat;
+
+  const traitsEl = document.getElementById('result-traits');
+  traitsEl.innerHTML = type.traits.map(t => `<span class="trait">${t}</span>`).join('');
+
+  // 4指標バー
+  const colors = ['#7b6ee8','#c8a96e','#6ec8b4','#e87b9a'];
+  const labels = [
+    {l: scores.I > scores.E ? '内向(I)' : '外向(E)', opp: scores.I > scores.E ? '外向(E)' : '内向(I)', total: scores.I + scores.E, v: Math.max(scores.I, scores.E)},
+    {l: scores.N > scores.S ? '直感(N)' : '感覚(S)', opp: scores.N > scores.S ? '感覚(S)' : '直感(N)', total: scores.N + scores.S, v: Math.max(scores.N, scores.S)},
+    {l: scores.T > scores.F ? '思考(T)' : '感情(F)', opp: scores.T > scores.F ? '感情(F)' : '思考(T)', total: scores.T + scores.F, v: Math.max(scores.T, scores.F)},
+    {l: scores.J > scores.P ? '計画(J)' : '柔軟(P)', opp: scores.J > scores.P ? '柔軟(P)' : '計画(J)', total: scores.J + scores.P, v: Math.max(scores.J, scores.P)},
+  ];
+  const barsEl = document.getElementById('dim-bars');
+  barsEl.innerHTML = labels.map((d, i) => {
+    const pct = d.total > 0 ? Math.round((d.v / d.total) * 100) : 50;
+    return `<div class="dim-bar">
+      <div class="dim-label"><span>${d.l}</span><span>${pct}%</span></div>
+      <div class="dim-track"><div class="dim-fill" style="width:0%;background:${colors[i]}" data-w="${pct}"></div></div>
+    </div>`;
+  }).join('');
+
+  showScreen('screen-result');
+  setTimeout(() => {
+    document.querySelectorAll('.dim-fill').forEach(el => { el.style.width = el.dataset.w + '%'; });
+  }, 300);
+
+  document.getElementById('screen-result').scrollTop = 0;
+  window.scrollTo(0, 0);
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => { s.classList.remove('active'); s.classList.add('hidden'); });
+  const el = document.getElementById(id);
+  el.classList.remove('hidden');
+  setTimeout(() => el.classList.add('active'), 10);
+}
+
+function restartQuiz() { startQuiz(); }
+
+function shareResult() {
+  const code = document.getElementById('result-type-code').textContent;
+  const name = document.getElementById('result-type-name').textContent;
+  const text = `私の性格タイプは「${code}（${name}）」でした！あなたもやってみて👇\n${location.href}`;
+  if (navigator.share) {
+    navigator.share({ title: '16タイプ性格診断', text, url: location.href }).catch(() => {});
+  } else {
+    navigator.clipboard.writeText(text).then(() => alert('クリップボードにコピーしました！'));
+  }
+}
+
+// ===== 星を生成 =====
+function createStars() {
+  const container = document.getElementById('stars');
+  for (let i = 0; i < 80; i++) {
+    const star = document.createElement('div');
+    star.className = 'star';
+    const size = Math.random() * 2 + 1;
+    star.style.cssText = `
+      width:${size}px; height:${size}px;
+      left:${Math.random()*100}%; top:${Math.random()*100}%;
+      --dur:${Math.random()*4+2}s; --delay:${Math.random()*4}s; --op:${Math.random()*0.5+0.3};
+    `;
+    container.appendChild(star);
+  }
+}
+
+createStars();
+</script>
+</body>
+</html>
